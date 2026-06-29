@@ -385,7 +385,8 @@
       <div class="form">
         <div style="font-size:30px;color:var(--gold);text-align:center;margin-bottom:6px">⚿</div>
         <h3 class="serif" style="text-align:center;margin-bottom:16px">Staff sign-in</h3>
-        <div class="field"><label>Passcode</label><input id="gatePass" type="password" placeholder="Enter staff passcode"><div class="err">Incorrect passcode.</div></div>
+        <div class="field" id="gateEmailField" style="display:none"><label>Email</label><input id="gateEmail" type="email" placeholder="staff@legodi.co.za"></div>
+        <div class="field"><label id="gatePassLabel">Passcode</label><input id="gatePass" type="password" placeholder="Enter staff passcode"><div class="err" id="gateErr">Incorrect passcode.</div></div>
         <button class="btn" style="width:100%" id="gateBtn">Unlock dashboard</button>
         <p class="muted" style="font-size:12px;text-align:center;margin:14px 0 0">Authorised Legodi &amp; Co staff only.</p>
       </div>
@@ -404,6 +405,7 @@
         <option value="Rejected">Rejected</option>
       </select>
       <button class="btn ghost sm" id="exportBtn">Export backup (JSON)</button>
+      <button class="btn ghost sm" id="signoutBtn" style="display:none">Sign out</button>
       <span id="connState" style="font-size:12px;font-weight:600"></span>
       <span style="margin-left:auto" class="muted" id="count"></span>
     </div>
@@ -506,8 +508,9 @@ async function dbAll(){
   return apps;
 }
 async function dbByRef(ref){
-  if(useCloud){const {data,error}=await sb.from(TABLE).select("*").eq("ref",ref).maybeSingle();
-    if(error)throw error;return data?fromRow(data):null;}
+  if(useCloud){ // secure RPC returns only ref/company/status/submitted, not the full row
+    const {data,error}=await sb.rpc("track_application",{p_ref:ref});
+    if(error)throw error;return data&&data.length?fromRow(data[0]):null;}
   return apps.find(a=>a.ref===ref)||null;
 }
 async function dbStatus(ref,status){
@@ -531,16 +534,41 @@ function go(id){
 document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
 
 //// ---------- Staff gate ----------
+//  Cloud mode -> real Supabase Auth (email + password); the data itself is
+//  protected by RLS, so this is genuine security. Offline mode -> local passcode.
 let staffUnlocked=false;
 const gateEl=document.getElementById("adminGate"), bodyEl=document.getElementById("adminBody");
 function showGate(){gateEl.style.display="block";bodyEl.style.display="none";}
 function unlock(){staffUnlocked=true;gateEl.style.display="none";bodyEl.style.display="block";loadAdmin();}
-document.getElementById("gateBtn").addEventListener("click",()=>{
-  const inp=document.getElementById("gatePass");const f=inp.closest(".field");
-  if(inp.value===CONFIG.STAFF_PASSCODE){f.classList.remove("bad");inp.value="";unlock();}
-  else{f.classList.add("bad");}
-});
-document.getElementById("gatePass").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("gateBtn").click();});
+async function doUnlock(){
+  const f=document.getElementById("gatePass").closest(".field");
+  if(useCloud){
+    const btn=document.getElementById("gateBtn");btn.disabled=true;btn.textContent="Signing in…";
+    const {error}=await sb.auth.signInWithPassword({
+      email:document.getElementById("gateEmail").value.trim(),
+      password:document.getElementById("gatePass").value
+    });
+    btn.disabled=false;btn.textContent="Sign in";
+    if(error){f.classList.add("bad");return;}
+    f.classList.remove("bad");document.getElementById("gatePass").value="";unlock();
+  }else{
+    const inp=document.getElementById("gatePass");
+    if(inp.value===CONFIG.STAFF_PASSCODE){f.classList.remove("bad");inp.value="";unlock();}
+    else f.classList.add("bad");
+  }
+}
+document.getElementById("gateBtn").addEventListener("click",doUnlock);
+document.getElementById("gatePass").addEventListener("keydown",e=>{if(e.key==="Enter")doUnlock();});
+document.getElementById("gateEmail").addEventListener("keydown",e=>{if(e.key==="Enter")doUnlock();});
+// In cloud mode, switch the gate to email+password and restore any existing session
+if(useCloud){
+  document.getElementById("gateEmailField").style.display="block";
+  document.getElementById("gatePassLabel").textContent="Password";
+  document.getElementById("gatePass").placeholder="Your password";
+  document.getElementById("gateErr").textContent="Incorrect email or password.";
+  document.getElementById("gateBtn").textContent="Sign in";
+  sb.auth.getSession().then(({data})=>{if(data&&data.session)staffUnlocked=true;});
+}
 
 //// ---------- Render services ----------
 document.getElementById("serviceGrid").innerHTML=SERVICES.map(s=>`
@@ -779,6 +807,12 @@ document.getElementById("exportBtn").addEventListener("click",()=>{
   const blob=new Blob([JSON.stringify(apps,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob);const a=document.createElement("a");
   a.href=url;a.download="legodico-applications.json";a.click();URL.revokeObjectURL(url);
+});
+const signoutBtn=document.getElementById("signoutBtn");
+if(useCloud)signoutBtn.style.display="inline-flex";
+signoutBtn.addEventListener("click",async()=>{
+  if(useCloud)await sb.auth.signOut();
+  staffUnlocked=false;showGate();toast("Signed out");
 });
 
 //// ---------- Modal / toast ----------

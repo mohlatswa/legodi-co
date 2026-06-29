@@ -1,6 +1,10 @@
 -- ============================================================
---  Legodi & Co — company-registration applications
---  Run this in your Supabase project:  SQL Editor → New query → Run
+--  Legodi & Co — SECURE schema for company-registration apps
+--  Run in your Supabase project:  SQL Editor -> New query -> Run
+--  This version is LOCKED DOWN (POPIA-friendly):
+--    • Public visitors can ONLY submit (insert) — never read others' data
+--    • Reading / editing / deleting requires a logged-in staff account
+--    • Tracking returns ONLY company name + status for a known reference
 -- ============================================================
 
 create table if not exists public.lc_applications (
@@ -26,26 +30,49 @@ create table if not exists public.lc_applications (
 
 alter table public.lc_applications enable row level security;
 
--- ------------------------------------------------------------
---  MVP policies (KNOWN-OPEN — see security note below).
---  These let the public site work with no login yet.
--- ------------------------------------------------------------
-drop policy if exists "anon insert" on public.lc_applications;
-drop policy if exists "anon select" on public.lc_applications;
-drop policy if exists "anon update" on public.lc_applications;
-drop policy if exists "anon delete" on public.lc_applications;
+-- Clean slate (safe to re-run)
+drop policy if exists "anon insert"   on public.lc_applications;
+drop policy if exists "anon select"   on public.lc_applications;
+drop policy if exists "anon update"   on public.lc_applications;
+drop policy if exists "anon delete"   on public.lc_applications;
+drop policy if exists "public insert" on public.lc_applications;
+drop policy if exists "staff read"    on public.lc_applications;
+drop policy if exists "staff update"  on public.lc_applications;
+drop policy if exists "staff delete"  on public.lc_applications;
 
-create policy "anon insert" on public.lc_applications for insert to anon with check (true);
-create policy "anon select" on public.lc_applications for select to anon using (true);
-create policy "anon update" on public.lc_applications for update to anon using (true) with check (true);
-create policy "anon delete" on public.lc_applications for delete to anon using (true);
+-- 1) Anyone (anon or logged-in) may SUBMIT a new application
+create policy "public insert" on public.lc_applications
+  for insert to anon, authenticated with check (true);
+
+-- 2) Only LOGGED-IN staff may read / update / delete
+create policy "staff read"   on public.lc_applications for select to authenticated using (true);
+create policy "staff update" on public.lc_applications for update to authenticated using (true) with check (true);
+create policy "staff delete" on public.lc_applications for delete to authenticated using (true);
+
+-- ------------------------------------------------------------
+-- 3) Public status tracking WITHOUT exposing the table.
+--    Returns only company name + status for an exact reference.
+--    SECURITY DEFINER lets it read the table on the caller's
+--    behalf while RLS still blocks direct anon SELECT.
+-- ------------------------------------------------------------
+create or replace function public.track_application(p_ref text)
+returns table (ref text, company_name text, status text, submitted timestamptz)
+language sql security definer set search_path = public as $$
+  select ref, company_name, status, submitted
+  from public.lc_applications
+  where ref = upper(trim(p_ref))
+  limit 1;
+$$;
+
+revoke all on function public.track_application(text) from public;
+grant execute on function public.track_application(text) to anon, authenticated;
 
 -- ============================================================
---  SECURITY NOTE (read me)
---  The policies above allow ANY visitor to read/update/delete
---  rows. The staff passcode in the app is UI-only deterrence,
---  NOT real protection. Fine for launch/testing, but before
---  storing real client ID numbers at scale, move the staff
---  portal behind Supabase Auth and restrict select/update/
---  delete to authenticated staff only (Phase 2 lockdown).
+--  CREATE A STAFF LOGIN (do this once)
+--  Supabase dashboard -> Authentication -> Users -> "Add user"
+--    Email:    mateteellenlegodi@hotmail.com
+--    Password: (choose a strong one)
+--    Tick "Auto Confirm User"
+--  Anyone WITHOUT a login can submit the form but can NEVER read
+--  applications. That is the real security — not the app passcode.
 -- ============================================================
