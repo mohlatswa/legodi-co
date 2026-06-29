@@ -350,6 +350,18 @@
     <h2>Registration applications</h2>
     <p class="lead" style="margin-bottom:28px">Internal dashboard — review and manage incoming company-registration requests.</p>
 
+    <!-- Passcode gate -->
+    <div id="adminGate" style="max-width:380px">
+      <div class="form">
+        <div style="font-size:30px;color:var(--gold);text-align:center;margin-bottom:6px">⚿</div>
+        <h3 class="serif" style="text-align:center;margin-bottom:16px">Staff sign-in</h3>
+        <div class="field"><label>Passcode</label><input id="gatePass" type="password" placeholder="Enter staff passcode"><div class="err">Incorrect passcode.</div></div>
+        <button class="btn" style="width:100%" id="gateBtn">Unlock dashboard</button>
+        <p class="muted" style="font-size:12px;text-align:center;margin:14px 0 0">Authorised Legodi &amp; Co staff only.</p>
+      </div>
+    </div>
+
+    <div id="adminBody" style="display:none">
     <div class="kpis" id="kpis"></div>
 
     <div class="toolbar">
@@ -363,6 +375,7 @@
       </select>
       <button class="btn ghost sm" id="seedBtn">Load sample data</button>
       <button class="btn ghost sm" id="exportBtn">Export JSON</button>
+      <span id="connState" style="font-size:12px;font-weight:600"></span>
       <span style="margin-left:auto" class="muted" id="count"></span>
     </div>
 
@@ -373,6 +386,7 @@
       </table>
       <div class="empty" id="emptyState">No applications yet. Submissions from the registration form appear here.</div>
     </div>
+    </div><!-- /adminBody -->
   </div>
 </section>
 
@@ -389,7 +403,21 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+//// ========================================================================
+////  SETUP — paste your dedicated Supabase project details here.
+////  Leave blank to run in offline mode (data saved only on this device).
+//// ========================================================================
+const CONFIG = {
+  SUPABASE_URL: "",   // e.g. https://abcdefgh.supabase.co
+  SUPABASE_KEY: "",   // your project's anon / publishable key
+  STAFF_PASSCODE: "legodi2026"   // change this — staff portal passcode
+};
+const useCloud = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY && window.supabase);
+const sb = useCloud ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY) : null;
+const TABLE = "lc_applications";
+
 //// ---------- Data ----------
 const SERVICES = [
   {icon:"⚖",name:"Company Registration",desc:"CIPC name reservation, incorporation, MOI and share certificates — everything to get you trading legally.",price:"from R1,200"},
@@ -413,7 +441,45 @@ const SVC_NAMES = SERVICES.map(s=>s.name);
 const KEY="legodico_apps_v1";
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return[]}};
 const save=a=>localStorage.setItem(KEY,JSON.stringify(a));
-let apps=load();
+let apps=load();   // in-memory cache (also the offline store)
+
+// Map between app object (camelCase) and DB row (snake_case)
+const toRow=a=>({ref:a.ref,company_name:a.companyName,alt_name:a.altName,entity_type:a.entityType,
+  industry:a.industry,description:a.description,contact_name:a.contactName,id_number:a.idNumber,
+  email:a.email,phone:a.phone,directors:a.directors,city:a.city,services:a.services,notes:a.notes,
+  status:a.status,submitted:a.submitted});
+const fromRow=r=>({ref:r.ref,companyName:r.company_name,altName:r.alt_name,entityType:r.entity_type,
+  industry:r.industry,description:r.description,contactName:r.contact_name,idNumber:r.id_number,
+  email:r.email,phone:r.phone,directors:r.directors,city:r.city,services:r.services||[],notes:r.notes,
+  status:r.status,submitted:r.submitted||r.created_at});
+
+// Unified data layer — cloud when configured, else localStorage
+async function dbInsert(app){
+  if(useCloud){const {error}=await sb.from(TABLE).insert(toRow(app));if(error)throw error;}
+  else{apps.unshift(app);save(apps);}
+}
+async function dbInsertMany(arr){
+  if(useCloud){const {error}=await sb.from(TABLE).insert(arr.map(toRow));if(error)throw error;}
+  else{arr.forEach(a=>apps.unshift(a));save(apps);}
+}
+async function dbAll(){
+  if(useCloud){const {data,error}=await sb.from(TABLE).select("*").order("submitted",{ascending:false});
+    if(error)throw error;return data.map(fromRow);}
+  return apps;
+}
+async function dbByRef(ref){
+  if(useCloud){const {data,error}=await sb.from(TABLE).select("*").eq("ref",ref).maybeSingle();
+    if(error)throw error;return data?fromRow(data):null;}
+  return apps.find(a=>a.ref===ref)||null;
+}
+async function dbStatus(ref,status){
+  if(useCloud){const {error}=await sb.from(TABLE).update({status}).eq("ref",ref);if(error)throw error;}
+  else{const a=apps.find(x=>x.ref===ref);if(a)a.status=status;save(apps);}
+}
+async function dbDelete(ref){
+  if(useCloud){const {error}=await sb.from(TABLE).delete().eq("ref",ref);if(error)throw error;}
+  else{apps=apps.filter(x=>x.ref!==ref);save(apps);}
+}
 
 //// ---------- Nav ----------
 const sections=[...document.querySelectorAll("section")];
@@ -422,9 +488,21 @@ function go(id){
   sections.forEach(s=>s.classList.toggle("show",s.id===id));
   navBtns.forEach(b=>b.classList.toggle("active",b.dataset.go===id));
   window.scrollTo({top:0,behavior:"smooth"});
-  if(id==="admin")renderAdmin();
+  if(id==="admin"){staffUnlocked?loadAdmin():showGate();}
 }
 document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+
+//// ---------- Staff gate ----------
+let staffUnlocked=false;
+const gateEl=document.getElementById("adminGate"), bodyEl=document.getElementById("adminBody");
+function showGate(){gateEl.style.display="block";bodyEl.style.display="none";}
+function unlock(){staffUnlocked=true;gateEl.style.display="none";bodyEl.style.display="block";loadAdmin();}
+document.getElementById("gateBtn").addEventListener("click",()=>{
+  const inp=document.getElementById("gatePass");const f=inp.closest(".field");
+  if(inp.value===CONFIG.STAFF_PASSCODE){f.classList.remove("bad");inp.value="";unlock();}
+  else{f.classList.add("bad");}
+});
+document.getElementById("gatePass").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("gateBtn").click();});
 
 //// ---------- Render services ----------
 document.getElementById("serviceGrid").innerHTML=SERVICES.map(s=>`
@@ -513,7 +591,7 @@ nextBtn.addEventListener("click",()=>{
 backBtn.addEventListener("click",()=>showStep(Math.max(0,step-1)));
 
 function genRef(){return "LC-"+Math.random().toString(36).slice(2,8).toUpperCase();}
-function submitApp(){
+async function submitApp(){
   const f=form;
   const app={
     ref:genRef(),
@@ -525,8 +603,14 @@ function submitApp(){
     services:selectedServices(),notes:f.notes.value.trim(),
     status:"New",submitted:new Date().toISOString()
   };
-  apps.unshift(app);save(apps);
-  showConfirm(app);
+  nextBtn.disabled=true;nextBtn.textContent="Submitting…";
+  try{
+    await dbInsert(app);
+    showConfirm(app);
+  }catch(err){
+    toast("Could not submit — please try again");
+    console.error(err);
+  }finally{nextBtn.disabled=false;}
 }
 function showConfirm(app){
   form.reset();document.querySelectorAll('#svcChecks input:checked').forEach(c=>c.checked=false);
@@ -548,11 +632,12 @@ function showConfirm(app){
 }
 
 //// ---------- Track ----------
-document.getElementById("trackBtn").addEventListener("click",()=>{
+document.getElementById("trackBtn").addEventListener("click",async()=>{
   const ref=document.getElementById("trackRef").value.trim().toUpperCase();
   const box=document.getElementById("trackResult");
   if(!ref){box.innerHTML='<p class="muted">Enter a reference number above.</p>';return;}
-  const a=apps.find(x=>x.ref===ref);
+  box.innerHTML='<p class="muted">Checking…</p>';
+  let a=null;try{a=await dbByRef(ref);}catch(e){box.innerHTML='<p style="color:var(--bad)">Could not reach the server. Try again.</p>';return;}
   if(!a){box.innerHTML=`<div class="card" style="border-color:var(--bad)"><b>Not found</b><p class="muted" style="margin:6px 0 0">No application matches “${ref}”. Check the reference and try again.</p></div>`;return;}
   const stages=["New","In review","Approved"];
   const idx=a.status==="Rejected"?-1:stages.indexOf(a.status);
@@ -574,6 +659,11 @@ function statusBadge(s){
   return `<span class="badge ${m[s]}">${s}</span>`;
 }
 function fmt(iso){const d=new Date(iso);return d.toLocaleDateString(undefined,{day:"2-digit",month:"short",year:"numeric"});}
+async function loadAdmin(){
+  document.getElementById("count").textContent="Loading…";
+  try{apps=await dbAll();}catch(e){toast("Could not load applications");console.error(e);}
+  renderAdmin();
+}
 function renderAdmin(){
   const q=document.getElementById("search").value.toLowerCase();
   const fs=document.getElementById("filterStatus").value;
@@ -631,23 +721,27 @@ function openApp(ref){
     </div>`;
   openModal(html);
 }
-window.saveStatus=ref=>{
-  const a=apps.find(x=>x.ref===ref);a.status=document.getElementById("statusSel").value;
-  save(apps);renderAdmin();closeModal();toast("Status updated");
+window.saveStatus=async ref=>{
+  const status=document.getElementById("statusSel").value;
+  try{await dbStatus(ref,status);closeModal();await loadAdmin();toast("Status updated");}
+  catch(e){toast("Update failed");console.error(e);}
 };
-window.delApp=ref=>{
-  apps=apps.filter(x=>x.ref!==ref);save(apps);renderAdmin();closeModal();toast("Application deleted");
+window.delApp=async ref=>{
+  if(!confirm("Delete this application permanently?"))return;
+  try{await dbDelete(ref);closeModal();await loadAdmin();toast("Application deleted");}
+  catch(e){toast("Delete failed");console.error(e);}
 };
 
 //// ---------- Sample data / export ----------
-document.getElementById("seedBtn").addEventListener("click",()=>{
+document.getElementById("seedBtn").addEventListener("click",async()=>{
   const samples=[
     {companyName:"Brightpath Trading",entityType:"Private Company (Pty) Ltd",industry:"Retail / E-commerce",contactName:"Thandi Nkosi",email:"thandi@brightpath.co.za",phone:"+27 82 111 2222",directors:"2",city:"Centurion",services:["Company Registration","Bookkeeping","Tax Registration & Returns"],notes:"Launching online store in August.",status:"In review"},
     {companyName:"Kgosi Construction",entityType:"Private Company (Pty) Ltd",industry:"Construction",contactName:"Sipho Dlamini",email:"sipho@kgosi.co.za",phone:"+27 71 333 4444",directors:"3",city:"Pretoria",services:["Company Registration","Payroll","Annual Financial Statements"],notes:"",status:"Approved"},
     {companyName:"Cloud9 Tech Labs",entityType:"Private Company (Pty) Ltd",industry:"Technology",contactName:"Aisha Patel",email:"aisha@cloud9.io",phone:"+27 60 555 6666",directors:"1",city:"Midrand",services:["Company Registration","Cloud Accounting Setup","Business Advisory"],notes:"Seeking seed-funding advisory.",status:"New"},
   ];
-  samples.forEach(s=>apps.unshift({ref:genRef(),altName:"",idNumber:"—",description:"",submitted:new Date(Date.now()-Math.random()*9e8).toISOString(),...s}));
-  save(apps);renderAdmin();toast("Sample data loaded");
+  const rows=samples.map(s=>({ref:genRef(),altName:"",idNumber:"—",description:"",submitted:new Date(Date.now()-Math.random()*9e8).toISOString(),...s}));
+  try{await dbInsertMany(rows);await loadAdmin();toast("Sample data loaded");}
+  catch(e){toast("Could not load sample data");console.error(e);}
 });
 document.getElementById("exportBtn").addEventListener("click",()=>{
   const blob=new Blob([JSON.stringify(apps,null,2)],{type:"application/json"});
@@ -662,6 +756,9 @@ document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="
 let toastT;function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600);}
 
 document.getElementById("yr").textContent=new Date().getFullYear();
+document.getElementById("connState").innerHTML=useCloud
+  ? '<span style="color:var(--good)">● Central database connected</span>'
+  : '<span style="color:var(--warn)">● Offline mode — saved on this device only</span>';
 showStep(0);
 </script>
 </body>
