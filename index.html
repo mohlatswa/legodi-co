@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Legodi & Co — Accounting & Company Registration · Centurion</title>
+<style>
+  :root{
+    --paper:#f6f2e9; --paper2:#efe8d9; --card:#ffffff; --line:#e3dccc; --line2:#cfc6b0;
+    --ink:#15231c; --mut:#6c7268; --brand:#11503a; --brand-d:#0c3b2b; --brand-l:#1c6f50;
+    --gold:#a87f3c; --gold-l:#c79a4f; --good:#1f7a52; --warn:#9a7320; --bad:#a83a3a; --info:#2f6280;
+    --radius:6px; --serif:Georgia,"Times New Roman",Cambria,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Inter",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--paper); color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  .serif{font-family:var(--serif)}
+  /* Header */
+  header{position:sticky;top:0;z-index:50;background:rgba(246,242,233,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:18px;height:70px}
+  .logo{display:flex;align-items:center;gap:11px;font-family:var(--serif);font-weight:700;font-size:21px;letter-spacing:.2px}
+  .logo .mark{width:34px;height:34px;border-radius:3px;background:var(--brand);display:grid;place-items:center;font-size:14px;color:#f6f2e9;font-family:var(--serif);border:1px solid var(--brand-d)}
+  .logo small{display:block;font-family:"Inter",sans-serif;font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);font-weight:600;margin-top:-3px}
+  .nav .links{display:flex;gap:2px;margin-left:auto;flex-wrap:wrap}
+  .nav .links button{background:none;border:0;color:var(--mut);font:inherit;font-size:13.5px;font-weight:500;padding:8px 13px;border-radius:4px;cursor:pointer;letter-spacing:.2px}
+  .nav .links button:hover{color:var(--ink)}
+  .nav .links button.active{color:var(--brand);font-weight:600}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--brand-d);cursor:pointer;font:inherit;font-weight:600;font-size:14px;
+    padding:11px 20px;border-radius:4px;background:var(--brand);color:#f6f2e9;transition:background .15s}
+  .btn:hover{background:var(--brand-d)}
+  .btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--ink)}
+  .btn.ghost:hover{border-color:var(--brand);color:var(--brand)}
+  .btn.sm{padding:8px 14px;font-size:13px}
+  /* Sections */
+  section{display:none}
+  section.show{display:block;animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .pad{padding:66px 0}
+  h1,h2,h3{margin:0 0 14px;line-height:1.18;font-family:var(--serif);font-weight:700}
+  h1{font-size:clamp(34px,5.2vw,54px);letter-spacing:-.5px}
+  h2{font-size:clamp(26px,3.6vw,36px)}
+  .lead{color:var(--mut);font-size:18px;max-width:600px;line-height:1.65}
+  .eyebrow{color:var(--gold);font-weight:700;letter-spacing:2.5px;text-transform:uppercase;font-size:11.5px;margin-bottom:16px;font-family:"Inter",sans-serif}
+  .rule{height:1px;background:var(--line);margin:0}
+  .secnum{font-family:var(--serif);font-size:13px;color:var(--gold);border:1px solid var(--line2);width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;margin-bottom:14px}
+  /* Hero */
+  .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
+  .hero-cta{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap}
+  .stats{display:flex;gap:34px;margin-top:40px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:26px}
+  .stat b{display:block;font-size:30px;font-weight:700;font-family:var(--serif);color:var(--brand)}
+  .stat span{color:var(--mut);font-size:12.5px;letter-spacing:.3px}
+  .hero-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:0 20px 50px -34px rgba(21,35,28,.5)}
+  .hero-card .cap{font-family:var(--serif);font-weight:700;font-size:16px}
+  .hero-card .row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
+  .hero-card .row:last-child{border:0}
+  .pill{font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:3px}
+  .pill.g{background:rgba(31,122,82,.12);color:var(--good)}
+  .pill.y{background:rgba(154,115,32,.13);color:var(--warn)}
+  /* Cards grid */
+  .grid{display:grid;gap:1px;background:var(--line)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .feat{background:var(--paper);padding:30px 26px}
+  .feat .ico{font-size:24px;margin-bottom:14px;color:var(--brand)}
+  .feat h3{font-size:18px;margin-bottom:8px}
+  .feat p{color:var(--mut);margin:0;font-size:14.5px}
+  /* Service cards */
+  .cards{display:grid;gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+  .card.hover{transition:border-color .15s,box-shadow .15s}
+  .card.hover:hover{border-color:var(--gold);box-shadow:0 14px 34px -26px rgba(21,35,28,.6)}
+  .card .ico{font-size:22px;color:var(--brand);margin-bottom:10px}
+  .card h3{font-size:18px;margin-bottom:8px}
+  .card p{color:var(--mut);margin:0 0 16px;font-size:14px}
+  .price{font-size:14px;font-weight:700;color:var(--gold);font-family:var(--serif)}
+  .muted{color:var(--mut)}
+  ul.ticks{list-style:none;padding:0;margin:0}
+  ul.ticks li{padding:7px 0 7px 24px;position:relative;font-size:14px;color:var(--mut)}
+  ul.ticks li::before{content:"—";position:absolute;left:0;color:var(--gold);font-weight:700}
+  /* Forms */
+  .form{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:30px}
+  label{display:block;font-size:12.5px;font-weight:600;margin:0 0 7px;color:var(--ink);letter-spacing:.2px}
+  .field{margin-bottom:19px}
+  input,select,textarea{width:100%;background:var(--paper);border:1px solid var(--line2);color:var(--ink);
+    border-radius:4px;padding:11px 13px;font:inherit;font-size:14.5px}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(17,80,58,.12);background:#fff}
+  textarea{resize:vertical;min-height:90px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .err{color:var(--bad);font-size:12.5px;margin-top:5px;display:none}
+  .field.bad input,.field.bad select{border-color:var(--bad)}
+  .field.bad .err{display:block}
+  /* Stepper */
+  .steps{display:flex;gap:0;margin-bottom:30px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .step{flex:1;min-width:90px;padding:14px 12px;background:var(--paper2);font-size:13px;color:var(--mut);display:flex;gap:9px;align-items:center;border-right:1px solid var(--line)}
+  .step:last-child{border-right:0}
+  .step b{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid var(--line2);color:var(--mut);font-size:12px;flex:none;font-family:var(--serif)}
+  .step.active{background:#fff;color:var(--ink)}
+  .step.active b{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .step.done b{background:var(--gold);color:#fff;border-color:var(--gold)}
+  .pane{display:none}.pane.show{display:block}
+  .pane h3{font-size:19px}
+  .navbtns{display:flex;justify-content:space-between;margin-top:8px;gap:12px}
+  /* Table / dashboard */
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line)}
+  th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+  tr.rowclick{cursor:pointer}
+  tr.rowclick:hover td{background:var(--paper2)}
+  .badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:3px;white-space:nowrap}
+  .b-new{background:rgba(47,98,128,.13);color:var(--info)}
+  .b-review{background:rgba(154,115,32,.14);color:var(--warn)}
+  .b-approved{background:rgba(31,122,82,.13);color:var(--good)}
+  .b-rejected{background:rgba(168,58,58,.13);color:var(--bad)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
+  .kpi{background:var(--card);padding:20px}
+  .kpi b{font-size:30px;display:block;font-family:var(--serif);font-weight:700}
+  .kpi span{color:var(--mut);font-size:12.5px;letter-spacing:.3px}
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(21,35,28,.45);display:none;place-items:center;z-index:100;padding:20px}
+  .modal.show{display:grid}
+  .sheet{background:var(--card);border:1px solid var(--line2);border-radius:var(--radius);max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:28px;box-shadow:0 30px 70px -30px rgba(21,35,28,.6)}
+  .sheet h3{font-size:21px}
+  .kv{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;font-size:14px;margin:18px 0}
+  .kv span{color:var(--mut)}
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#f6f2e9;
+    font-weight:600;font-size:14px;padding:13px 24px;border-radius:4px;opacity:0;transition:.3s;z-index:200;box-shadow:0 14px 34px -10px rgba(0,0,0,.5)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .center{text-align:center;max-width:680px;margin:0 auto}
+  footer{border-top:1px solid var(--line);padding:34px 0;color:var(--mut);font-size:13.5px;margin-top:40px;background:var(--paper2)}
+  .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
+  .empty{text-align:center;color:var(--mut);padding:54px 20px}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+  .toolbar input,.toolbar select{width:auto}
+  .founder{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:46px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;padding:30px}
+  .founder .av{width:96px;height:96px;border-radius:4px;background:var(--brand);display:grid;place-items:center;font-size:32px;font-weight:700;color:#f6f2e9;font-family:var(--serif);border:1px solid var(--brand-d)}
+  @media(max-width:860px){.hero{grid-template-columns:1fr}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}
+    .two{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.kv{grid-template-columns:1fr}.founder{grid-template-columns:1fr;text-align:center}.founder .av{margin:0 auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="mark">L&amp;Co</span><div>Legodi &amp; Co<small>Chartered Accounting</small></div></div>
+    <nav class="links" id="nav">
+      <button data-go="home" class="active">Home</button>
+      <button data-go="services">Services</button>
+      <button data-go="register">Register a Company</button>
+      <button data-go="track">Track Application</button>
+      <button data-go="admin">Staff Portal</button>
+    </nav>
+    <button class="btn sm" data-go="register">Get Started</button>
+  </div>
+</header>
+
+<!-- HOME -->
+<section id="home" class="show">
+  <div class="wrap pad">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Accounting · Tax · Company Registration · Centurion</div>
+        <h1>The financial backbone behind growing businesses.</h1>
+        <p class="lead">Legodi &amp; Co registers your company, keeps your books compliant, and files your taxes on time — a trusted accounting partner for entrepreneurs across Gauteng.</p>
+        <div class="hero-cta">
+          <button class="btn" data-go="register">Register a Company →</button>
+          <button class="btn ghost" data-go="services">Our Services</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><b>1,240+</b><span>COMPANIES REGISTERED</span></div>
+          <div class="stat"><b>48h</b><span>AVG. TURNAROUND</span></div>
+          <div class="stat"><b>14</b><span>YEARS IN PRACTICE</span></div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="cap">Your compliance, at a glance</div>
+        <div class="muted" style="font-size:12.5px;margin-bottom:12px">Sample client dashboard</div>
+        <div class="row"><span>Company registration (CIPC)</span><span class="pill g">Done</span></div>
+        <div class="row"><span>Tax (SARS) registration</span><span class="pill g">Done</span></div>
+        <div class="row"><span>VAT return — Q2</span><span class="pill y">Due in 9 days</span></div>
+        <div class="row"><span>Annual financial statements</span><span class="pill y">In progress</span></div>
+        <div class="row"><span>Payroll — June</span><span class="pill g">Filed</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="rule"></div>
+  <div class="wrap pad">
+    <div class="center" style="margin-bottom:40px">
+      <div class="secnum">01</div>
+      <h2>What a true accounting partner does</h2>
+    </div>
+    <div class="grid g3" style="border:1px solid var(--line);border-radius:var(--radius);overflow:hidden">
+      <div class="feat"><div class="ico">⚖</div><h3>Fast registration</h3><p>CIPC name reservation and incorporation handled end-to-end, usually within 48 hours.</p></div>
+      <div class="feat"><div class="ico">⬡</div><h3>Always compliant</h3><p>We track every filing deadline so you never face a penalty for a late return again.</p></div>
+      <div class="feat"><div class="ico">▤</div><h3>Clear reporting</h3><p>Monthly management accounts in plain language, so you always know where you stand.</p></div>
+      <div class="feat"><div class="ico">◷</div><h3>Dedicated accountant</h3><p>A real person who knows your business — not a call-centre queue.</p></div>
+      <div class="feat"><div class="ico">◈</div><h3>Fixed monthly fees</h3><p>No surprise invoices. Predictable pricing that scales with your business.</p></div>
+      <div class="feat"><div class="ico">☁</div><h3>Cloud bookkeeping</h3><p>Connect your bank, snap receipts, and we reconcile everything for you.</p></div>
+    </div>
+
+    <div class="founder">
+      <div class="av">ML</div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:8px">Founder &amp; Principal</div>
+        <h3 style="font-size:22px;margin-bottom:8px">Matete Legodi</h3>
+        <p class="muted" style="margin:0">Legodi &amp; Co is a Centurion-based practice founded and led by Matete Legodi. We give Gauteng's entrepreneurs and small businesses the kind of hands-on financial partner usually reserved for large corporates — personal, proactive, and always compliant.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="wrap pad">
+    <div class="center" style="margin-bottom:44px">
+      <div class="secnum">02</div>
+      <div class="eyebrow">Our Services</div>
+      <h2>Support for every stage of your business</h2>
+      <p class="lead" style="margin:12px auto 0">From your very first registration to a fully outsourced finance function.</p>
+    </div>
+    <div class="cards g3" id="serviceGrid"></div>
+
+    <div class="center" style="margin:64px auto 28px">
+      <div class="eyebrow">Retainer Plans</div>
+      <h2>Simple monthly packages</h2>
+    </div>
+    <div class="cards g3" id="planGrid"></div>
+  </div>
+</section>
+
+<!-- REGISTER -->
+<section id="register">
+  <div class="wrap pad">
+    <div style="max-width:780px;margin:0 auto">
+      <div class="eyebrow">Company Registration</div>
+      <h2>Register your company with Legodi &amp; Co</h2>
+      <p class="lead" style="margin-bottom:30px">Complete the details below — about 5 minutes, with no obligation. We'll review and contact you to confirm the next steps.</p>
+
+      <div class="steps" id="steps">
+        <div class="step active"><b>1</b> Company</div>
+        <div class="step"><b>2</b> Owners</div>
+        <div class="step"><b>3</b> Services</div>
+        <div class="step"><b>4</b> Review</div>
+      </div>
+
+      <form class="form" id="regForm" novalidate>
+        <!-- STEP 1 -->
+        <div class="pane show" data-pane="0">
+          <h3>About the company</h3>
+          <div class="two">
+            <div class="field"><label>Proposed company name *</label><input name="companyName" placeholder="e.g. Brightpath Trading"><div class="err">Please enter a company name.</div></div>
+            <div class="field"><label>Alternative name</label><input name="altName" placeholder="Backup name if first is taken"></div>
+          </div>
+          <div class="two">
+            <div class="field"><label>Entity type *</label>
+              <select name="entityType">
+                <option value="">Select…</option>
+                <option>Private Company (Pty) Ltd</option>
+                <option>Non-Profit Company (NPC)</option>
+                <option>Sole Proprietor</option>
+                <option>Partnership</option>
+                <option>Public Company (Ltd)</option>
+              </select><div class="err">Please choose an entity type.</div>
+            </div>
+            <div class="field"><label>Industry *</label>
+              <select name="industry">
+                <option value="">Select…</option>
+                <option>Retail / E-commerce</option><option>Construction</option><option>Professional Services</option>
+                <option>Hospitality</option><option>Technology</option><option>Manufacturing</option>
+                <option>Transport &amp; Logistics</option><option>Agriculture</option><option>Other</option>
+              </select><div class="err">Please choose an industry.</div>
+            </div>
+          </div>
+          <div class="field"><label>Brief description of the business</label><textarea name="description" placeholder="What will the company do?"></textarea></div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="pane" data-pane="1">
+          <h3>Primary contact / director</h3>
+          <div class="two">
+            <div class="field"><label>Full name *</label><input name="contactName" placeholder="Jane Mokoena"><div class="err">Please enter your name.</div></div>
+            <div class="field"><label>ID / Passport number *</label><input name="idNumber" placeholder="ID or passport"><div class="err">Please enter an ID number.</div></div>
+          </div>
+          <div class="two">
+            <div class="field"><label>Email *</label><input name="email" type="email" placeholder="you@email.com"><div class="err">Please enter a valid email.</div></div>
+            <div class="field"><label>Phone *</label><input name="phone" placeholder="+27 ..."><div class="err">Please enter a phone number.</div></div>
+          </div>
+          <div class="two">
+            <div class="field"><label>Number of directors/owners *</label>
+              <select name="directors"><option value="">Select…</option><option>1</option><option>2</option><option>3</option><option>4+</option></select>
+              <div class="err">Please select.</div>
+            </div>
+            <div class="field"><label>Registered address (city)</label><input name="city" placeholder="e.g. Centurion"></div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="pane" data-pane="2">
+          <h3>Which services do you need?</h3>
+          <p class="muted" style="margin-top:0">Select all that apply — we'll tailor a quote.</p>
+          <div id="svcChecks" class="grid g2" style="gap:10px;background:none"></div>
+          <div class="field" style="margin-top:18px"><label>Anything else we should know?</label><textarea name="notes" placeholder="Optional"></textarea></div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="pane" data-pane="3">
+          <h3>Review your application</h3>
+          <div id="review" class="kv"></div>
+          <div class="field">
+            <label style="display:flex;gap:9px;align-items:flex-start;font-weight:500;color:var(--mut)">
+              <input type="checkbox" name="consent" style="width:auto;margin-top:4px">
+              I confirm the details above are correct and authorise Legodi &amp; Co to contact me about this application.
+            </label>
+            <div class="err">You must confirm to submit.</div>
+          </div>
+        </div>
+
+        <div class="navbtns">
+          <button type="button" class="btn ghost" id="backBtn" style="visibility:hidden">← Back</button>
+          <button type="button" class="btn" id="nextBtn">Next →</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- TRACK -->
+<section id="track">
+  <div class="wrap pad">
+    <div style="max-width:620px;margin:0 auto">
+      <div class="eyebrow">Track Application</div>
+      <h2>Check your application status</h2>
+      <p class="lead" style="margin-bottom:26px">Enter the reference number you received when you applied.</p>
+      <div class="form">
+        <div class="field"><label>Reference number</label><input id="trackRef" placeholder="LC-XXXXXX" style="text-transform:uppercase"></div>
+        <button class="btn" id="trackBtn">Check status</button>
+        <div id="trackResult" style="margin-top:22px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<section id="admin">
+  <div class="wrap pad">
+    <div class="eyebrow">Staff Portal</div>
+    <h2>Registration applications</h2>
+    <p class="lead" style="margin-bottom:28px">Internal dashboard — review and manage incoming company-registration requests.</p>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="toolbar">
+      <input id="search" placeholder="Search name, company, ref…">
+      <select id="filterStatus">
+        <option value="">All statuses</option>
+        <option value="New">New</option>
+        <option value="In review">In review</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+      <button class="btn ghost sm" id="seedBtn">Load sample data</button>
+      <button class="btn ghost sm" id="exportBtn">Export JSON</button>
+      <span style="margin-left:auto" class="muted" id="count"></span>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr><th>Ref</th><th>Company</th><th>Contact</th><th>Entity</th><th>Submitted</th><th>Status</th></tr></thead>
+        <tbody id="appRows"></tbody>
+      </table>
+      <div class="empty" id="emptyState">No applications yet. Submissions from the registration form appear here.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div>© <span id="yr"></span> Legodi &amp; Co Accounting (Pty) Ltd · Owned by Matete Legodi<br>Centurion, Gauteng · Registered accountants &amp; tax practitioners</div>
+    <div>hello@legodi.co.za · +27 12 000 0000<br>Centurion, Pretoria · By appointment</div>
+  </div>
+</footer>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="sheet" id="sheet"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+//// ---------- Data ----------
+const SERVICES = [
+  {icon:"⚖",name:"Company Registration",desc:"CIPC name reservation, incorporation, MOI and share certificates — everything to get you trading legally.",price:"from R1,200"},
+  {icon:"▦",name:"Tax Registration & Returns",desc:"SARS income tax, VAT and PAYE registration, plus accurate, on-time return filing.",price:"from R650/mo"},
+  {icon:"▤",name:"Bookkeeping",desc:"Cloud-based monthly bookkeeping, bank reconciliations and tidy, audit-ready records.",price:"from R900/mo"},
+  {icon:"◫",name:"Payroll",desc:"Payslips, EMP201/EMP501 submissions, UIF and SDL — your team paid correctly, on time.",price:"from R45/payslip"},
+  {icon:"◭",name:"Management Accounts",desc:"Monthly or quarterly reports with insights on cash flow, profit and key trends.",price:"from R1,500/mo"},
+  {icon:"❡",name:"Annual Financial Statements",desc:"IFRS-compliant AFS and independent reviews for the financial year-end.",price:"from R3,500"},
+  {icon:"◈",name:"Business Advisory",desc:"Budgeting, forecasting, funding applications and strategic CFO-level guidance.",price:"hourly / retainer"},
+  {icon:"⬡",name:"Secretarial & Compliance",desc:"Annual returns, director changes, beneficial ownership and CIPC compliance upkeep.",price:"from R450/yr"},
+  {icon:"☁",name:"Cloud Accounting Setup",desc:"Xero / QuickBooks / Sage setup, migration, integrations and staff training.",price:"once-off"},
+];
+const PLANS = [
+  {name:"Starter",price:"R990",per:"/month",tag:"Sole props & new companies",feats:["Monthly bookkeeping","Annual tax return","CIPC annual return","Email support"]},
+  {name:"Growth",price:"R2,450",per:"/month",tag:"Most popular for SMEs",feats:["Everything in Starter","VAT & PAYE returns","Monthly management accounts","Payroll up to 10 staff","Dedicated accountant"],hot:true},
+  {name:"Scale",price:"R5,900",per:"/month",tag:"Established businesses",feats:["Everything in Growth","Annual financial statements","Quarterly advisory sessions","Budgeting & forecasting","Priority phone support"]},
+];
+const SVC_NAMES = SERVICES.map(s=>s.name);
+
+//// ---------- Storage ----------
+const KEY="legodico_apps_v1";
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return[]}};
+const save=a=>localStorage.setItem(KEY,JSON.stringify(a));
+let apps=load();
+
+//// ---------- Nav ----------
+const sections=[...document.querySelectorAll("section")];
+const navBtns=[...document.querySelectorAll("#nav button")];
+function go(id){
+  sections.forEach(s=>s.classList.toggle("show",s.id===id));
+  navBtns.forEach(b=>b.classList.toggle("active",b.dataset.go===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(id==="admin")renderAdmin();
+}
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+
+//// ---------- Render services ----------
+document.getElementById("serviceGrid").innerHTML=SERVICES.map(s=>`
+  <div class="card hover">
+    <div class="ico">${s.icon}</div>
+    <h3>${s.name}</h3><p>${s.desc}</p>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="price">${s.price}</span>
+      <button class="btn sm ghost" data-svc="${s.name}">Request</button>
+    </div>
+  </div>`).join("");
+document.getElementById("planGrid").innerHTML=PLANS.map(p=>`
+  <div class="card hover" style="${p.hot?'border-color:var(--gold);box-shadow:0 16px 40px -26px var(--gold)':''}">
+    ${p.hot?'<div class="badge b-review" style="margin-bottom:12px;display:inline-block">★ Most popular</div>':''}
+    <h3>${p.name}</h3><div class="muted" style="font-size:13px;margin-bottom:12px">${p.tag}</div>
+    <div style="font-size:32px;font-weight:700;font-family:var(--serif)">${p.price}<span class="muted" style="font-size:14px;font-weight:500;font-family:Inter,sans-serif">${p.per}</span></div>
+    <ul class="ticks" style="margin:18px 0">${p.feats.map(f=>`<li>${f}</li>`).join("")}</ul>
+    <button class="btn" style="width:100%" data-go="register">Choose ${p.name}</button>
+  </div>`).join("");
+document.querySelectorAll("[data-svc]").forEach(b=>b.addEventListener("click",()=>{
+  go("register");
+  setTimeout(()=>{const c=document.querySelector(`#svcChecks input[value="${b.dataset.svc}"]`);if(c){c.checked=true;}},60);
+}));
+
+//// ---------- Service checkboxes ----------
+document.getElementById("svcChecks").innerHTML=SVC_NAMES.map(n=>`
+  <label style="display:flex;gap:9px;align-items:center;background:var(--paper);border:1px solid var(--line2);padding:11px 13px;border-radius:4px;font-weight:500;cursor:pointer">
+    <input type="checkbox" value="${n}" style="width:auto"> ${n}
+  </label>`).join("");
+
+//// ---------- Wizard ----------
+let step=0;
+const panes=[...document.querySelectorAll(".pane")];
+const stepEls=[...document.querySelectorAll("#steps .step")];
+const form=document.getElementById("regForm");
+const backBtn=document.getElementById("backBtn"), nextBtn=document.getElementById("nextBtn");
+
+const RULES={
+  0:[["companyName",v=>v.trim()],["entityType",v=>v],["industry",v=>v]],
+  1:[["contactName",v=>v.trim()],["idNumber",v=>v.trim()],["email",v=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)],["phone",v=>v.trim().length>=6],["directors",v=>v]],
+  2:[],3:[]
+};
+function validateStep(n){
+  let ok=true;
+  (RULES[n]||[]).forEach(([name,test])=>{
+    const el=form[name];const field=el.closest(".field");
+    const good=test(el.value);
+    field.classList.toggle("bad",!good);
+    if(!good)ok=false;
+  });
+  if(n===3){
+    const c=form.consent;const field=c.closest(".field");
+    if(!c.checked){field.classList.add("bad");ok=false;}else field.classList.remove("bad");
+  }
+  return ok;
+}
+function showStep(n){
+  step=n;
+  panes.forEach((p,i)=>p.classList.toggle("show",i===n));
+  stepEls.forEach((s,i)=>{s.classList.toggle("active",i===n);s.classList.toggle("done",i<n);});
+  backBtn.style.visibility=n===0?"hidden":"visible";
+  nextBtn.textContent=n===3?"Submit application ✓":"Next →";
+  if(n===3)buildReview();
+}
+function selectedServices(){return [...document.querySelectorAll('#svcChecks input:checked')].map(c=>c.value);}
+function buildReview(){
+  const f=form;const svc=selectedServices();
+  const rows=[
+    ["Company name",f.companyName.value||"—"],
+    ["Alternative",f.altName.value||"—"],
+    ["Entity type",f.entityType.value||"—"],
+    ["Industry",f.industry.value||"—"],
+    ["Contact",f.contactName.value||"—"],
+    ["Email",f.email.value||"—"],
+    ["Phone",f.phone.value||"—"],
+    ["Directors",f.directors.value||"—"],
+    ["City",f.city.value||"—"],
+    ["Services",svc.length?svc.join(", "):"—"],
+  ];
+  document.getElementById("review").innerHTML=rows.map(([k,v])=>`<span>${k}</span><div>${v}</div>`).join("");
+}
+nextBtn.addEventListener("click",()=>{
+  if(!validateStep(step))return;
+  if(step<3)showStep(step+1);else submitApp();
+});
+backBtn.addEventListener("click",()=>showStep(Math.max(0,step-1)));
+
+function genRef(){return "LC-"+Math.random().toString(36).slice(2,8).toUpperCase();}
+function submitApp(){
+  const f=form;
+  const app={
+    ref:genRef(),
+    companyName:f.companyName.value.trim(),altName:f.altName.value.trim(),
+    entityType:f.entityType.value,industry:f.industry.value,description:f.description.value.trim(),
+    contactName:f.contactName.value.trim(),idNumber:f.idNumber.value.trim(),
+    email:f.email.value.trim(),phone:f.phone.value.trim(),
+    directors:f.directors.value,city:f.city.value.trim(),
+    services:selectedServices(),notes:f.notes.value.trim(),
+    status:"New",submitted:new Date().toISOString()
+  };
+  apps.unshift(app);save(apps);
+  showConfirm(app);
+}
+function showConfirm(app){
+  form.reset();document.querySelectorAll('#svcChecks input:checked').forEach(c=>c.checked=false);
+  showStep(0);
+  const html=`
+    <div style="text-align:center">
+      <div style="font-size:42px;color:var(--gold)">✦</div>
+      <h3>Application submitted</h3>
+      <p class="muted">Thank you, ${app.contactName.split(" ")[0]}. Our team will review and contact you shortly.</p>
+      <div style="background:var(--paper);border:1px solid var(--line2);border-radius:4px;padding:18px;margin:18px 0">
+        <div class="muted" style="font-size:12px;letter-spacing:.5px">YOUR REFERENCE NUMBER</div>
+        <div style="font-size:26px;font-weight:700;letter-spacing:1px;font-family:var(--serif)">${app.ref}</div>
+      </div>
+      <p class="muted" style="font-size:13px">Save this number to track your application status.</p>
+      <button class="btn" onclick="closeModal()">Done</button>
+    </div>`;
+  openModal(html);
+  toast("Application "+app.ref+" received");
+}
+
+//// ---------- Track ----------
+document.getElementById("trackBtn").addEventListener("click",()=>{
+  const ref=document.getElementById("trackRef").value.trim().toUpperCase();
+  const box=document.getElementById("trackResult");
+  if(!ref){box.innerHTML='<p class="muted">Enter a reference number above.</p>';return;}
+  const a=apps.find(x=>x.ref===ref);
+  if(!a){box.innerHTML=`<div class="card" style="border-color:var(--bad)"><b>Not found</b><p class="muted" style="margin:6px 0 0">No application matches “${ref}”. Check the reference and try again.</p></div>`;return;}
+  const stages=["New","In review","Approved"];
+  const idx=a.status==="Rejected"?-1:stages.indexOf(a.status);
+  box.innerHTML=`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b class="serif" style="font-size:18px">${a.companyName}</b>${statusBadge(a.status)}
+      </div>
+      <div class="muted" style="font-size:13px;margin:4px 0 16px">Ref ${a.ref} · submitted ${fmt(a.submitted)}</div>
+      ${a.status==="Rejected"
+        ? '<p style="color:var(--bad)">This application was not approved. Our team will be in touch with next steps.</p>'
+        : stages.map((s,i)=>`<div class="row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><span>${i<=idx?'●':'○'} ${s}</span></div>`).join("")}
+    </div>`;
+});
+
+//// ---------- Admin ----------
+function statusBadge(s){
+  const m={"New":"b-new","In review":"b-review","Approved":"b-approved","Rejected":"b-rejected"};
+  return `<span class="badge ${m[s]}">${s}</span>`;
+}
+function fmt(iso){const d=new Date(iso);return d.toLocaleDateString(undefined,{day:"2-digit",month:"short",year:"numeric"});}
+function renderAdmin(){
+  const q=document.getElementById("search").value.toLowerCase();
+  const fs=document.getElementById("filterStatus").value;
+  let list=apps.filter(a=>{
+    const match=(a.companyName+a.contactName+a.ref+a.email).toLowerCase().includes(q);
+    return match&&(!fs||a.status===fs);
+  });
+  const c=s=>apps.filter(a=>a.status===s).length;
+  document.getElementById("kpis").innerHTML=`
+    <div class="kpi"><b>${apps.length}</b><span>TOTAL APPLICATIONS</span></div>
+    <div class="kpi"><b style="color:var(--info)">${c("New")}</b><span>NEW</span></div>
+    <div class="kpi"><b style="color:var(--warn)">${c("In review")}</b><span>IN REVIEW</span></div>
+    <div class="kpi"><b style="color:var(--good)">${c("Approved")}</b><span>APPROVED</span></div>`;
+  const tbody=document.getElementById("appRows");
+  document.getElementById("emptyState").style.display=list.length?"none":"block";
+  document.getElementById("count").textContent=list.length+" shown";
+  tbody.innerHTML=list.map(a=>`
+    <tr class="rowclick" data-ref="${a.ref}">
+      <td><b>${a.ref}</b></td><td>${a.companyName}</td><td>${a.contactName}<br><span class="muted" style="font-size:12px">${a.email}</span></td>
+      <td>${a.entityType||"—"}</td><td>${fmt(a.submitted)}</td><td>${statusBadge(a.status)}</td>
+    </tr>`).join("");
+  tbody.querySelectorAll("tr").forEach(r=>r.addEventListener("click",()=>openApp(r.dataset.ref)));
+}
+["search","filterStatus"].forEach(id=>document.getElementById(id).addEventListener("input",renderAdmin));
+
+function openApp(ref){
+  const a=apps.find(x=>x.ref===ref);if(!a)return;
+  const html=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h3 style="margin-bottom:2px">${a.companyName}</h3><span class="muted">${a.ref}</span></div>${statusBadge(a.status)}
+    </div>
+    <div class="kv">
+      <span>Alternative</span><div>${a.altName||"—"}</div>
+      <span>Entity type</span><div>${a.entityType||"—"}</div>
+      <span>Industry</span><div>${a.industry||"—"}</div>
+      <span>Description</span><div>${a.description||"—"}</div>
+      <span>Contact</span><div>${a.contactName}</div>
+      <span>ID number</span><div>${a.idNumber||"—"}</div>
+      <span>Email</span><div>${a.email}</div>
+      <span>Phone</span><div>${a.phone}</div>
+      <span>Directors</span><div>${a.directors||"—"}</div>
+      <span>City</span><div>${a.city||"—"}</div>
+      <span>Services</span><div>${a.services&&a.services.length?a.services.join(", "):"—"}</div>
+      <span>Notes</span><div>${a.notes||"—"}</div>
+      <span>Submitted</span><div>${fmt(a.submitted)}</div>
+    </div>
+    <label>Update status</label>
+    <select id="statusSel">${["New","In review","Approved","Rejected"].map(s=>`<option ${s===a.status?"selected":""}>${s}</option>`).join("")}</select>
+    <div class="navbtns" style="margin-top:18px">
+      <button class="btn ghost" onclick="delApp('${a.ref}')" style="color:var(--bad);border-color:var(--bad)">Delete</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost" onclick="closeModal()">Close</button>
+        <button class="btn" onclick="saveStatus('${a.ref}')">Save</button>
+      </div>
+    </div>`;
+  openModal(html);
+}
+window.saveStatus=ref=>{
+  const a=apps.find(x=>x.ref===ref);a.status=document.getElementById("statusSel").value;
+  save(apps);renderAdmin();closeModal();toast("Status updated");
+};
+window.delApp=ref=>{
+  apps=apps.filter(x=>x.ref!==ref);save(apps);renderAdmin();closeModal();toast("Application deleted");
+};
+
+//// ---------- Sample data / export ----------
+document.getElementById("seedBtn").addEventListener("click",()=>{
+  const samples=[
+    {companyName:"Brightpath Trading",entityType:"Private Company (Pty) Ltd",industry:"Retail / E-commerce",contactName:"Thandi Nkosi",email:"thandi@brightpath.co.za",phone:"+27 82 111 2222",directors:"2",city:"Centurion",services:["Company Registration","Bookkeeping","Tax Registration & Returns"],notes:"Launching online store in August.",status:"In review"},
+    {companyName:"Kgosi Construction",entityType:"Private Company (Pty) Ltd",industry:"Construction",contactName:"Sipho Dlamini",email:"sipho@kgosi.co.za",phone:"+27 71 333 4444",directors:"3",city:"Pretoria",services:["Company Registration","Payroll","Annual Financial Statements"],notes:"",status:"Approved"},
+    {companyName:"Cloud9 Tech Labs",entityType:"Private Company (Pty) Ltd",industry:"Technology",contactName:"Aisha Patel",email:"aisha@cloud9.io",phone:"+27 60 555 6666",directors:"1",city:"Midrand",services:["Company Registration","Cloud Accounting Setup","Business Advisory"],notes:"Seeking seed-funding advisory.",status:"New"},
+  ];
+  samples.forEach(s=>apps.unshift({ref:genRef(),altName:"",idNumber:"—",description:"",submitted:new Date(Date.now()-Math.random()*9e8).toISOString(),...s}));
+  save(apps);renderAdmin();toast("Sample data loaded");
+});
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(apps,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");
+  a.href=url;a.download="legodico-applications.json";a.click();URL.revokeObjectURL(url);
+});
+
+//// ---------- Modal / toast ----------
+function openModal(html){document.getElementById("sheet").innerHTML=html;document.getElementById("modal").classList.add("show");}
+window.closeModal=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal();});
+let toastT;function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600);}
+
+document.getElementById("yr").textContent=new Date().getFullYear();
+showStep(0);
+</script>
+</body>
+</html>
