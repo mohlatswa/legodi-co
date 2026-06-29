@@ -130,6 +130,26 @@
   .kpi{background:var(--card);padding:20px}
   .kpi b{font-size:30px;display:block;font-family:var(--serif);font-weight:700}
   .kpi span{color:var(--mut);font-size:12.5px;letter-spacing:.3px}
+  /* Charts */
+  .charts{display:grid;grid-template-columns:0.95fr 1.1fr 1fr;gap:16px;margin-bottom:24px}
+  .chartcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
+  .chartcard h4{margin:0 0 16px;font-size:11.5px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.7px}
+  .donutwrap{display:flex;align-items:center;gap:16px}
+  .legend{flex:1;font-size:13px}
+  .legend div{display:flex;align-items:center;gap:8px;margin:7px 0}
+  .legend i{width:11px;height:11px;border-radius:2px;flex:none}
+  .legend b{margin-left:auto;font-family:var(--serif)}
+  .vbars{display:flex;align-items:flex-end;gap:9px;height:150px}
+  .vbars .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .vbars .barval{font-size:11px;color:var(--mut);margin-bottom:5px;font-weight:600}
+  .vbars .bar{width:100%;max-width:30px;border-radius:5px 5px 0 0;background:linear-gradient(180deg,var(--brand-l),var(--brand));box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+  .vbars .mlab{font-size:10.5px;color:var(--mut);margin-top:7px}
+  .hbars .row2{margin:11px 0}
+  .hbars .lab{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px}
+  .hbars .lab b{font-family:var(--serif)}
+  .hbars .track{background:var(--paper2);border-radius:4px;height:9px;overflow:hidden}
+  .hbars .fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--gold-l));border-radius:4px;transition:width .4s}
+  @media(max-width:860px){.charts{grid-template-columns:1fr}}
   /* Modal */
   .modal{position:fixed;inset:0;background:rgba(21,35,28,.45);display:none;place-items:center;z-index:100;padding:20px}
   .modal.show{display:grid}
@@ -394,6 +414,7 @@
 
     <div id="adminBody" style="display:none">
     <div class="kpis" id="kpis"></div>
+    <div class="charts" id="charts"></div>
 
     <div class="toolbar">
       <input id="search" placeholder="Search name, company, ref…">
@@ -447,9 +468,9 @@
 ////  Leave blank to run in offline mode (data saved only on this device).
 //// ========================================================================
 const CONFIG = {
-  SUPABASE_URL: "",   // e.g. https://abcdefgh.supabase.co
-  SUPABASE_KEY: "",   // your project's anon / publishable key
-  STAFF_PASSCODE: "legodi2026"   // change this — staff portal passcode
+  SUPABASE_URL: "https://mwdhpvazszoiardapzqe.supabase.co",
+  SUPABASE_KEY: "sb_publishable_zGx2qHmHlG4G5f23YfFexw_XChvkOdq",  // publishable (safe in browser)
+  STAFF_PASSCODE: "legodi2026"   // offline-only fallback; cloud mode uses real Supabase Auth login
 };
 const useCloud = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY && window.supabase);
 const sb = useCloud ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY) : null;
@@ -729,6 +750,41 @@ function statusBadge(s){
   return `<span class="badge ${m[s]}">${s}</span>`;
 }
 function fmt(iso){const d=new Date(iso);return d.toLocaleDateString(undefined,{day:"2-digit",month:"short",year:"numeric"});}
+function buildCharts(){
+  const total=apps.length;
+  // 1) Status donut
+  const statuses=[
+    {label:"New",color:"#0a5ca8",value:apps.filter(a=>a.status==="New").length},
+    {label:"In review",color:"#b07a1a",value:apps.filter(a=>a.status==="In review").length},
+    {label:"Approved",color:"#1f7a52",value:apps.filter(a=>a.status==="Approved").length},
+    {label:"Rejected",color:"#c0392b",value:apps.filter(a=>a.status==="Rejected").length},
+  ];
+  const C=2*Math.PI*52; let off=0;
+  const rings=total? statuses.filter(s=>s.value>0).map(s=>{
+    const len=C*s.value/total;
+    const el=`<circle cx="70" cy="70" r="52" fill="none" stroke="${s.color}" stroke-width="20" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"/>`;
+    off+=len; return el;
+  }).join("") : `<circle cx="70" cy="70" r="52" fill="none" stroke="var(--line)" stroke-width="20"/>`;
+  const donut=`<svg viewBox="0 0 140 140" width="128" height="128">${rings}<text x="70" y="66" text-anchor="middle" font-size="30" font-weight="700" fill="var(--ink)" font-family="Georgia,serif">${total}</text><text x="70" y="87" text-anchor="middle" font-size="10" fill="var(--mut)">TOTAL</text></svg>`;
+  const legend=statuses.map(s=>`<div><i style="background:${s.color}"></i>${s.label}<b>${s.value}</b></div>`).join("");
+  // 2) Last 6 months bar chart
+  const now=new Date(), months=[];
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    months.push({key:d.getFullYear()+"-"+d.getMonth(),label:d.toLocaleDateString(undefined,{month:"short"}),value:0});}
+  apps.forEach(a=>{const d=new Date(a.submitted);const k=d.getFullYear()+"-"+d.getMonth();const m=months.find(x=>x.key===k);if(m)m.value++;});
+  const maxM=Math.max(1,...months.map(m=>m.value)), H=112;
+  const monthBars=`<div class="vbars">${months.map(m=>`<div class="col"><div class="barval">${m.value||""}</div><div class="bar" style="height:${Math.round(m.value/maxM*H)||2}px"></div><div class="mlab">${m.label}</div></div>`).join("")}</div>`;
+  // 3) Top requested services
+  const svc={}; apps.forEach(a=>(a.services||[]).forEach(s=>svc[s]=(svc[s]||0)+1));
+  const top=Object.entries(svc).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxS=Math.max(1,...top.map(t=>t[1]));
+  const svcBars=top.length? top.map(([n,v])=>`<div class="row2"><div class="lab"><span>${esc(n)}</span><b>${v}</b></div><div class="track"><div class="fill" style="width:${Math.round(v/maxS*100)}%"></div></div></div>`).join("")
+    : `<p class="muted" style="font-size:13px;margin:8px 0">No services requested yet.</p>`;
+  document.getElementById("charts").innerHTML=`
+    <div class="chartcard"><h4>Applications by status</h4><div class="donutwrap">${donut}<div class="legend">${legend}</div></div></div>
+    <div class="chartcard"><h4>Applications · last 6 months</h4>${monthBars}</div>
+    <div class="chartcard"><h4>Top requested services</h4><div class="hbars">${svcBars}</div></div>`;
+}
 async function loadAdmin(){
   document.getElementById("count").textContent="Loading…";
   try{apps=await dbAll();}catch(e){toast("Could not load applications");console.error(e);}
@@ -747,6 +803,7 @@ function renderAdmin(){
     <div class="kpi"><b style="color:var(--info)">${c("New")}</b><span>NEW</span></div>
     <div class="kpi"><b style="color:var(--warn)">${c("In review")}</b><span>IN REVIEW</span></div>
     <div class="kpi"><b style="color:var(--good)">${c("Approved")}</b><span>APPROVED</span></div>`;
+  buildCharts();
   const tbody=document.getElementById("appRows");
   document.getElementById("emptyState").style.display=list.length?"none":"block";
   document.getElementById("count").textContent=list.length+" shown";
