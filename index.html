@@ -69,6 +69,15 @@
   .hero-card .cap{font-family:var(--serif);font-weight:700;font-size:16px}
   .hero-card .row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
   .hero-card .row:last-child{border:0}
+  .hero-pie{display:flex;align-items:center;gap:18px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .hero-pie svg{flex:none}
+  .hero-pie svg path{transform-box:fill-box;transform-origin:center;animation:pieIn .7s cubic-bezier(.34,1.56,.64,1) both}
+  .hero-pie svg path:nth-child(2){animation-delay:.12s}
+  @keyframes pieIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+  .plegend{font-size:12.5px;flex:1}
+  .plegend div{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .plegend i{width:10px;height:10px;border-radius:2px;flex:none}
+  .plegend b{margin-left:auto;font-family:var(--serif);padding-left:10px}
   .pill{font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:3px}
   .pill.g{background:rgba(31,122,82,.12);color:var(--good)}
   .pill.y{background:rgba(154,115,32,.13);color:var(--warn)}
@@ -246,6 +255,16 @@
       <div class="hero-card">
         <div class="cap">Your compliance, at a glance</div>
         <div class="muted" style="font-size:12.5px;margin-bottom:12px">Sample client dashboard</div>
+        <div class="hero-pie">
+          <svg viewBox="0 0 80 80" width="72" height="72" role="img" aria-label="3 of 5 items complete">
+            <path d="M 40 40 L 40 4 A 36 36 0 1 1 18.84 69.12 Z" fill="var(--good)"/>
+            <path d="M 40 40 L 18.84 69.12 A 36 36 0 0 1 40 4 Z" fill="var(--warn)"/>
+          </svg>
+          <div class="plegend">
+            <div><i style="background:var(--good)"></i>Complete<b>3</b></div>
+            <div><i style="background:var(--warn)"></i>In progress<b>2</b></div>
+          </div>
+        </div>
         <div class="row"><span>Company registration (CIPC)</span><span class="pill g">Done</span></div>
         <div class="row"><span>Tax (SARS) registration</span><span class="pill g">Done</span></div>
         <div class="row"><span>VAT return — Q2</span><span class="pill y">Due in 9 days</span></div>
