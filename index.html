@@ -6,7 +6,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://wa.me mailto:">
 <title>NM Legodi Consulting — Accounting, Tax & Company Registration · South Africa</title>
 <meta name="description" content="NM Legodi Consulting (Pty) Ltd is an accounting and tax practice led by Matete Ellen Legodi, headquartered in Centurion and serving clients across South Africa. We register companies (CIPC), handle SARS tax, bookkeeping, payroll and compliance — wherever you're based." />
-<meta name="theme-color" content="#0a5ca8" />
+<meta name="theme-color" content="#123f74" />
 <!-- Open Graph / WhatsApp link preview -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content="NM Legodi Consulting — Accounting & Company Registration" />
@@ -17,8 +17,8 @@
 <style>
   :root{
     --paper:#eef4fb; --paper2:#e0ebf6; --card:#ffffff; --line:#d4e2f0; --line2:#b9cfe5;
-    --ink:#0e2840; --mut:#5d7488; --brand:#0a5ca8; --brand-d:#073f73; --brand-l:#2b82c9;
-    --gold:#1786d1; --gold-l:#3ba0de; --good:#1f7a52; --warn:#b07a1a; --bad:#c0392b; --info:#0a5ca8;
+    --ink:#0e2840; --mut:#5d7488; --brand:#123f74; --brand-d:#072851; --brand-l:#2f6ba3;
+    --gold:#a9822f; --gold-l:#c7a35c; --good:#1f7a52; --warn:#b07a1a; --bad:#c0392b; --info:#123f74;
     --radius:6px; --serif:Georgia,"Times New Roman",Cambria,serif;
   }
   *{box-sizing:border-box}
@@ -65,7 +65,7 @@
   .stats{display:flex;gap:34px;margin-top:40px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:26px}
   .stat b{display:block;font-size:30px;font-weight:700;font-family:var(--serif);color:var(--brand)}
   .stat span{color:var(--mut);font-size:12.5px;letter-spacing:.3px}
-  .hero-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:0 20px 50px -34px rgba(21,35,28,.5)}
+  .hero-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:0 20px 50px -34px rgba(7,40,81,.16)}
   .hero-card .cap{font-family:var(--serif);font-weight:700;font-size:16px}
   .hero-card .row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
   .hero-card .row:last-child{border:0}
@@ -86,7 +86,7 @@
   .g3{grid-template-columns:repeat(3,1fr)}
   .g2{grid-template-columns:repeat(2,1fr)}
   .feat{background:var(--paper);padding:28px 26px}
-  .feat .ico{width:46px;height:46px;border-radius:12px;background:rgba(10,92,168,.09);display:inline-grid;place-items:center;color:var(--brand);margin-bottom:16px}
+  .feat .ico{width:46px;height:46px;border-radius:12px;background:rgba(18,63,116,.08);display:inline-grid;place-items:center;color:var(--brand);margin-bottom:16px}
   .ico svg{display:block}
   .feat h3{font-size:18px;margin-bottom:8px}
   .feat p{color:var(--mut);margin:0;font-size:14.5px}
@@ -94,8 +94,8 @@
   .cards{display:grid;gap:18px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
   .card.hover{transition:border-color .15s,box-shadow .15s}
-  .card.hover:hover{border-color:var(--gold);box-shadow:0 14px 34px -26px rgba(21,35,28,.6)}
-  .card .ico{width:44px;height:44px;border-radius:11px;background:rgba(10,92,168,.09);display:inline-grid;place-items:center;color:var(--brand);margin-bottom:14px}
+  .card.hover:hover{border-color:var(--gold);box-shadow:0 14px 34px -26px rgba(7,40,81,.22)}
+  .card .ico{width:44px;height:44px;border-radius:11px;background:rgba(18,63,116,.08);display:inline-grid;place-items:center;color:var(--brand);margin-bottom:14px}
   .card h3{font-size:18px;margin-bottom:8px}
   .card p{color:var(--mut);margin:0 0 16px;font-size:14px}
   .price{font-size:14px;font-weight:700;color:var(--gold);font-family:var(--serif)}
@@ -109,7 +109,7 @@
   .field{margin-bottom:19px}
   input,select,textarea{width:100%;background:var(--paper);border:1px solid var(--line2);color:var(--ink);
     border-radius:4px;padding:11px 13px;font:inherit;font-size:14.5px}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(17,80,58,.12);background:#fff}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(18,63,116,.15);background:#fff}
   textarea{resize:vertical;min-height:90px}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .err{color:var(--bad);font-size:12.5px;margin-top:5px;display:none}
@@ -133,7 +133,7 @@
   tr.rowclick{cursor:pointer}
   tr.rowclick:hover td{background:var(--paper2)}
   .badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:3px;white-space:nowrap}
-  .b-new{background:rgba(47,98,128,.13);color:var(--info)}
+  .b-new{background:rgba(18,63,116,.13);color:var(--info)}
   .b-review{background:rgba(154,115,32,.14);color:var(--warn)}
   .b-approved{background:rgba(31,122,82,.13);color:var(--good)}
   .b-rejected{background:rgba(168,58,58,.13);color:var(--bad)}
@@ -162,9 +162,9 @@
   .hbars .fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--gold-l));border-radius:4px;transition:width .4s}
   @media(max-width:860px){.charts{grid-template-columns:1fr}}
   /* Modal */
-  .modal{position:fixed;inset:0;background:rgba(21,35,28,.45);display:none;place-items:center;z-index:100;padding:20px}
+  .modal{position:fixed;inset:0;background:rgba(7,40,81,.45);display:none;place-items:center;z-index:100;padding:20px}
   .modal.show{display:grid}
-  .sheet{background:var(--card);border:1px solid var(--line2);border-radius:var(--radius);max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:28px;box-shadow:0 30px 70px -30px rgba(21,35,28,.6)}
+  .sheet{background:var(--card);border:1px solid var(--line2);border-radius:var(--radius);max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:28px;box-shadow:0 30px 70px -30px rgba(7,40,81,.22)}
   .sheet h3{font-size:21px}
   .kv{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;font-size:14px;margin:18px 0}
   .kv span{color:var(--mut)}
@@ -196,7 +196,7 @@
     .nav>.btn.sm{display:none}
     .logo{font-size:16px}.logo img{height:34px}
     .nav .links{position:absolute;top:69px;left:0;right:0;flex-direction:column;gap:2px;background:var(--card);
-      border-bottom:1px solid var(--line);padding:10px;display:none;box-shadow:0 16px 30px -18px rgba(14,40,64,.5)}
+      border-bottom:1px solid var(--line);padding:10px;display:none;box-shadow:0 16px 30px -18px rgba(7,40,81,.5)}
     .nav .links.open{display:flex}
     .nav .links button{width:100%;text-align:left;padding:14px 16px;font-size:15px;border-radius:6px}
     .nav .links button:hover,.nav .links button.active{background:var(--paper)}
@@ -860,7 +860,7 @@ function buildCharts(){
   const total=apps.length;
   // 1) Status donut
   const statuses=[
-    {label:"New",color:"#0a5ca8",value:apps.filter(a=>a.status==="New").length},
+    {label:"New",color:"#123f74",value:apps.filter(a=>a.status==="New").length},
     {label:"In review",color:"#b07a1a",value:apps.filter(a=>a.status==="In review").length},
     {label:"Approved",color:"#1f7a52",value:apps.filter(a=>a.status==="Approved").length},
     {label:"Rejected",color:"#c0392b",value:apps.filter(a=>a.status==="Rejected").length},
