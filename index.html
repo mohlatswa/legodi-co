@@ -463,7 +463,19 @@
         <div class="field" id="gateEmailField" style="display:none"><label>Email</label><input id="gateEmail" type="email" placeholder="you@email.com"></div>
         <div class="field"><label id="gatePassLabel">Passcode</label><input id="gatePass" type="password" placeholder="Enter staff passcode"><div class="err" id="gateErr">Incorrect passcode.</div></div>
         <button class="btn" style="width:100%" id="gateBtn">Unlock dashboard</button>
+        <button type="button" class="btn ghost" style="width:100%;margin-top:10px;display:none" id="gateForgotBtn">Forgot your password?</button>
         <p class="muted" style="font-size:12px;text-align:center;margin:14px 0 0">Authorised NM Legodi Consulting staff only.</p>
+      </div>
+    </div>
+
+    <!-- Password recovery — shown after the staff member opens the reset link from their email -->
+    <div id="pwResetPanel" style="max-width:380px;display:none">
+      <div class="form">
+        <div style="font-size:30px;color:var(--gold);text-align:center;margin-bottom:6px">🔑</div>
+        <h3 class="serif" style="text-align:center;margin-bottom:16px">Set a new password</h3>
+        <div class="field"><label>New password</label><input id="newPass" type="password" placeholder="At least 8 characters"></div>
+        <div class="field"><label>Confirm new password</label><input id="newPass2" type="password" placeholder="Re-enter new password"><div class="err" id="pwResetErr">Those passwords don’t match.</div></div>
+        <button class="btn" style="width:100%" id="pwResetBtn">Set new password</button>
       </div>
     </div>
 
@@ -492,6 +504,16 @@
         <tbody id="appRows"></tbody>
       </table>
       <div class="empty" id="emptyState">No applications yet. Submissions from the registration form appear here.</div>
+    </div>
+
+    <div class="card" id="acctBox" style="display:none;margin-top:24px;max-width:520px">
+      <h3 style="font-size:17px;margin-bottom:4px">Your staff account</h3>
+      <p class="muted" style="margin:0 0 18px;font-size:13px">Change the email or password you use to sign in here.</p>
+      <div class="field"><label>New password</label><input id="acctPass" type="password" placeholder="At least 8 characters"></div>
+      <button class="btn" style="width:100%;margin-bottom:22px" id="acctPassBtn">Update password</button>
+      <div class="field"><label>New sign-in email</label><input id="acctEmail" type="email" placeholder="new@email.com"></div>
+      <button class="btn ghost" style="width:100%" id="acctEmailBtn">Update email</button>
+      <p class="muted" style="font-size:11.5px;margin:12px 0 0">🔒 Changing your email sends a confirmation link to the new address — the change takes effect once you open it.</p>
     </div>
     </div><!-- /adminBody -->
   </div>
@@ -523,8 +545,8 @@
 ////  Leave blank to run in offline mode (data saved only on this device).
 //// ========================================================================
 const CONFIG = {
-  SUPABASE_URL: "https://mwdhpvazszoiardapzqe.supabase.co",
-  SUPABASE_KEY: "sb_publishable_zGx2qHmHlG4G5f23YfFexw_XChvkOdq",  // publishable (safe in browser)
+  SUPABASE_URL: "https://uwxnbaicwfbygvkiyhcf.supabase.co",
+  SUPABASE_KEY: "sb_publishable_L9FBKzeVRDw0NqRFAdAdOA_uJKvNBRq",  // publishable (safe in browser)
   STAFF_PASSCODE: "legodi2026"   // offline-only fallback; cloud mode uses real Supabase Auth login
 };
 const useCloud = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY && window.supabase);
@@ -642,8 +664,9 @@ navLinks.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{n
 //  protected by RLS, so this is genuine security. Offline mode -> local passcode.
 let staffUnlocked=false;
 const gateEl=document.getElementById("adminGate"), bodyEl=document.getElementById("adminBody");
-function showGate(){gateEl.style.display="block";bodyEl.style.display="none";}
-function unlock(){staffUnlocked=true;gateEl.style.display="none";bodyEl.style.display="block";loadAdmin();}
+function showGate(){gateEl.style.display="block";document.getElementById("pwResetPanel").style.display="none";bodyEl.style.display="none";}
+function unlock(){staffUnlocked=true;gateEl.style.display="none";document.getElementById("pwResetPanel").style.display="none";bodyEl.style.display="block";if(useCloud)document.getElementById("acctBox").style.display="block";loadAdmin();}
+function showPwReset(){gateEl.style.display="none";bodyEl.style.display="none";document.getElementById("pwResetPanel").style.display="block";}
 async function doUnlock(){
   const f=document.getElementById("gatePass").closest(".field");
   if(useCloud){
@@ -672,7 +695,66 @@ if(useCloud){
   document.getElementById("gateErr").textContent="Incorrect email or password.";
   document.getElementById("gateBtn").textContent="Sign in";
   sb.auth.getSession().then(({data})=>{if(data&&data.session)staffUnlocked=true;});
+
+  // ----- Forgot password: email the staff member a reset link -----
+  const forgotBtn=document.getElementById("gateForgotBtn");
+  forgotBtn.style.display="block";
+  forgotBtn.addEventListener("click",async()=>{
+    const emailInp=document.getElementById("gateEmail");
+    const email=emailInp.value.trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+      emailInp.closest(".field").classList.add("bad");
+      toast("Enter your email above, then tap “Forgot your password?”");return;
+    }
+    emailInp.closest(".field").classList.remove("bad");
+    forgotBtn.disabled=true;forgotBtn.textContent="Sending reset link…";
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+    forgotBtn.disabled=false;forgotBtn.textContent="Forgot your password?";
+    toast(error?"Could not send — check the email and try again":"Reset link sent to "+email);
+  });
+
+  // Returning from the reset email — Supabase emits PASSWORD_RECOVERY once the link opens
+  sb.auth.onAuthStateChange(event=>{if(event==="PASSWORD_RECOVERY"){go("admin");showPwReset();}});
+
+  // ----- Account self-service (visible once signed in) -----
+  document.getElementById("acctPassBtn").addEventListener("click",async()=>{
+    const inp=document.getElementById("acctPass"),p=inp.value;
+    if(p.length<8){toast("Password must be at least 8 characters");return;}
+    const b=document.getElementById("acctPassBtn");b.disabled=true;b.textContent="Updating…";
+    const {error}=await sb.auth.updateUser({password:p});
+    b.disabled=false;b.textContent="Update password";
+    if(error){toast(error.message||"Could not update password");return;}
+    inp.value="";toast("Password updated");
+  });
+  document.getElementById("acctEmailBtn").addEventListener("click",async()=>{
+    const inp=document.getElementById("acctEmail"),em=inp.value.trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){toast("Enter a valid email address");return;}
+    const b=document.getElementById("acctEmailBtn");b.disabled=true;b.textContent="Sending…";
+    const {error}=await sb.auth.updateUser({email:em});
+    b.disabled=false;b.textContent="Update email";
+    if(error){toast(error.message||"Could not update email");return;}
+    inp.value="";toast("Confirmation link sent to "+em);
+  });
 }
+
+// ----- Recovery panel: save the new password -----
+document.getElementById("pwResetBtn").addEventListener("click",async()=>{
+  if(!useCloud)return;
+  const p1=document.getElementById("newPass").value,p2=document.getElementById("newPass2").value;
+  const err=document.getElementById("pwResetErr");
+  const fail=m=>{err.textContent=m;err.style.display="block";};
+  if(p1.length<8)return fail("Password must be at least 8 characters.");
+  if(p1!==p2)return fail("Those passwords don’t match.");
+  err.style.display="none";
+  const b=document.getElementById("pwResetBtn");b.disabled=true;b.textContent="Saving…";
+  const {error}=await sb.auth.updateUser({password:p1});
+  b.disabled=false;b.textContent="Set new password";
+  if(error)return fail(error.message||"Could not set the password — request a fresh link and try again.");
+  document.getElementById("newPass").value="";document.getElementById("newPass2").value="";
+  history.replaceState(null,"",location.pathname+location.search);
+  toast("Password updated — you’re signed in");
+  unlock();
+});
 
 //// ---------- Render services ----------
 document.querySelectorAll(".feat .ico[data-ico]").forEach(el=>el.innerHTML=ICONS[el.dataset.ico]||"");
