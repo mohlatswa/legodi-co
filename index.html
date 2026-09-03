@@ -463,7 +463,8 @@
         <div class="field" id="gateEmailField" style="display:none"><label>Email</label><input id="gateEmail" type="email" placeholder="you@email.com"></div>
         <div class="field"><label id="gatePassLabel">Passcode</label><input id="gatePass" type="password" placeholder="Enter staff passcode"><div class="err" id="gateErr">Incorrect passcode.</div></div>
         <button class="btn" style="width:100%" id="gateBtn">Unlock dashboard</button>
-        <button type="button" class="btn ghost" style="width:100%;margin-top:10px;display:none" id="gateForgotBtn">Forgot your password?</button>
+        <button type="button" class="btn ghost" style="width:100%;margin-top:10px;display:none" id="gateForgotBtn">Forgot your password or email?</button>
+        <p class="muted" id="gateUserHint" style="display:none;font-size:11.5px;text-align:center;margin:12px 0 0;line-height:1.5">Your username is the email address on your staff account. Forgotten which email you use? Ask the practice administrator — they can look it up under <b>Staff&nbsp;access</b> once signed in.</p>
         <p class="muted" style="font-size:12px;text-align:center;margin:14px 0 0">Authorised NM Legodi Consulting staff only.</p>
       </div>
     </div>
@@ -508,12 +509,24 @@
 
     <div class="card" id="acctBox" style="display:none;margin-top:24px;max-width:520px">
       <h3 style="font-size:17px;margin-bottom:4px">Your staff account</h3>
+      <p class="muted" id="acctWhoami" style="margin:0 0 4px;font-size:13px;font-weight:600;color:var(--ink)">Signed in</p>
       <p class="muted" style="margin:0 0 18px;font-size:13px">Change the email or password you use to sign in here.</p>
       <div class="field"><label>New password</label><input id="acctPass" type="password" placeholder="At least 8 characters"></div>
       <button class="btn" style="width:100%;margin-bottom:22px" id="acctPassBtn">Update password</button>
       <div class="field"><label>New sign-in email</label><input id="acctEmail" type="email" placeholder="new@email.com"></div>
       <button class="btn ghost" style="width:100%" id="acctEmailBtn">Update email</button>
       <p class="muted" style="font-size:11.5px;margin:12px 0 0">🔒 Changing your email sends a confirmation link to the new address — the change takes effect once you open it.</p>
+    </div>
+
+    <div class="card" id="staffAccessBox" style="display:none;margin-top:24px;max-width:520px">
+      <h3 style="font-size:17px;margin-bottom:4px">Staff access</h3>
+      <p class="muted" style="margin:0 0 16px;font-size:13px">Email addresses allowed to sign in to this dashboard. If a colleague has forgotten which email they use, it's listed here.</p>
+      <div id="staffList" style="font-size:14px"></div>
+      <div class="two" style="margin-top:16px">
+        <div class="field" style="margin:0"><input id="staffAddEmail" type="email" placeholder="colleague@email.com"></div>
+        <button class="btn ghost" id="staffAddBtn">Add staff email</button>
+      </div>
+      <p class="muted" style="font-size:11.5px;margin:12px 0 0">Adding an email here only puts it on the allow‑list. The person also needs a login created for that email (Supabase → Authentication → Users, or have them use “Forgot your password or email?” after you’ve added them).</p>
     </div>
     </div><!-- /adminBody -->
   </div>
@@ -665,7 +678,11 @@ navLinks.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{n
 let staffUnlocked=false;
 const gateEl=document.getElementById("adminGate"), bodyEl=document.getElementById("adminBody");
 function showGate(){gateEl.style.display="block";document.getElementById("pwResetPanel").style.display="none";bodyEl.style.display="none";}
-function unlock(){staffUnlocked=true;gateEl.style.display="none";document.getElementById("pwResetPanel").style.display="none";bodyEl.style.display="block";if(useCloud)document.getElementById("acctBox").style.display="block";loadAdmin();}
+function unlock(){staffUnlocked=true;gateEl.style.display="none";document.getElementById("pwResetPanel").style.display="none";bodyEl.style.display="block";
+  if(useCloud){document.getElementById("acctBox").style.display="block";document.getElementById("staffAccessBox").style.display="block";
+    sb.auth.getUser().then(({data})=>{const e=data&&data.user&&data.user.email;if(e)document.getElementById("acctWhoami").textContent="Signed in as "+e;});
+    loadStaffList();}
+  loadAdmin();}
 function showPwReset(){gateEl.style.display="none";bodyEl.style.display="none";document.getElementById("pwResetPanel").style.display="block";}
 async function doUnlock(){
   const f=document.getElementById("gatePass").closest(".field");
@@ -694,9 +711,10 @@ if(useCloud){
   document.getElementById("gatePass").placeholder="Your password";
   document.getElementById("gateErr").textContent="Incorrect email or password.";
   document.getElementById("gateBtn").textContent="Sign in";
+  document.getElementById("gateUserHint").style.display="block";
   sb.auth.getSession().then(({data})=>{if(data&&data.session)staffUnlocked=true;});
 
-  // ----- Forgot password: email the staff member a reset link -----
+  // ----- Forgot password / forgot which email: email the staff member a reset link -----
   const forgotBtn=document.getElementById("gateForgotBtn");
   forgotBtn.style.display="block";
   forgotBtn.addEventListener("click",async()=>{
@@ -704,13 +722,41 @@ if(useCloud){
     const email=emailInp.value.trim();
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
       emailInp.closest(".field").classList.add("bad");
-      toast("Enter your email above, then tap “Forgot your password?”");return;
+      toast("Type your staff email above first. Not sure which email? Ask the practice admin to check Staff access.");return;
     }
     emailInp.closest(".field").classList.remove("bad");
     forgotBtn.disabled=true;forgotBtn.textContent="Sending reset link…";
     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
-    forgotBtn.disabled=false;forgotBtn.textContent="Forgot your password?";
-    toast(error?"Could not send — check the email and try again":"Reset link sent to "+email);
+    forgotBtn.disabled=false;forgotBtn.textContent="Forgot your password or email?";
+    toast(error?"Could not send. If this email has no staff account, ask the admin to add it.":"If that email has a staff account, a reset link is on its way to it.");
+  });
+
+  // ----- Staff access list (helps a colleague who forgot which email they use) -----
+  window.loadStaffList=async()=>{
+    const box=document.getElementById("staffList");
+    const {data,error}=await sb.from("lc_staff").select("email").order("email");
+    if(error){box.innerHTML='<span class="muted">Could not load the staff list.</span>';return;}
+    box.innerHTML=(data||[]).map(r=>`
+      <div class="row" style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)">
+        <span>${esc(r.email)}</span>
+        <button class="btn ghost sm" data-rmstaff="${esc(r.email)}" style="color:var(--bad);border-color:var(--bad)">Remove</button>
+      </div>`).join("")||'<span class="muted">No staff emails on the list.</span>';
+    box.querySelectorAll("[data-rmstaff]").forEach(b=>b.addEventListener("click",async()=>{
+      const em=b.dataset.rmstaff;
+      if(!confirm("Remove "+em+" from staff access? They will no longer be able to open this dashboard."))return;
+      const {error}=await sb.from("lc_staff").delete().eq("email",em);
+      if(error){toast("Could not remove — you may be removing your own access");return;}
+      toast("Removed "+em);loadStaffList();
+    }));
+  };
+  document.getElementById("staffAddBtn").addEventListener("click",async()=>{
+    const inp=document.getElementById("staffAddEmail"),em=inp.value.trim().toLowerCase();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){toast("Enter a valid email address");return;}
+    const b=document.getElementById("staffAddBtn");b.disabled=true;b.textContent="Adding…";
+    const {error}=await sb.from("lc_staff").insert({email:em});
+    b.disabled=false;b.textContent="Add staff email";
+    if(error){toast(/duplicate/i.test(error.message)?"That email is already on the list":"Could not add — "+error.message);return;}
+    inp.value="";toast("Added "+em+" — now create their login in Supabase Auth");loadStaffList();
   });
 
   // Returning from the reset email — Supabase emits PASSWORD_RECOVERY once the link opens
