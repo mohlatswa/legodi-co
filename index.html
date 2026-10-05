@@ -185,7 +185,13 @@
   .empty{text-align:center;color:var(--mut);padding:54px 20px}
   .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
   .toolbar input,.toolbar select{width:auto}
-  .founder{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:46px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;padding:30px}
+  .founder{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:46px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start;padding:30px}
+  .founder p{margin:0 0 12px;line-height:1.65}
+  .founder .fx{list-style:none;padding:0;margin:0 0 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;text-align:left}
+  .founder .fx li{position:relative;padding-left:18px;font-size:14.5px;color:var(--ink)}
+  .founder .fx li::before{content:"";position:absolute;left:0;top:.6em;width:8px;height:2px;background:var(--gold)}
+  .founder .tagline{margin:6px 0 0;font-family:var(--serif);font-style:italic;font-size:17px;color:var(--brand);border-top:1px solid var(--line);padding-top:14px}
+  @media(max-width:720px){.founder .fx{grid-template-columns:1fr}}
   .founder .av{width:96px;height:96px;border-radius:4px;background:var(--brand);display:grid;place-items:center;font-size:32px;font-weight:700;color:#fff;font-family:var(--serif);border:1px solid var(--brand-d)}
   @media(max-width:860px){.hero{grid-template-columns:1fr}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}
     .two{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.kv{grid-template-columns:1fr}.founder{grid-template-columns:1fr;text-align:center}.founder .av{margin:0 auto}}
@@ -291,9 +297,20 @@
     <div class="founder">
       <div class="av">ML</div>
       <div>
-        <div class="eyebrow" style="margin-bottom:8px">Director &amp; Principal</div>
-        <h3 style="font-size:22px;margin-bottom:8px">Matete Ellen Legodi</h3>
-        <p class="muted" style="margin:0">NM Legodi Consulting (Pty) Ltd is a Centurion-headquartered practice led by Matete Ellen Legodi, serving entrepreneurs and small businesses across South Africa online and by phone. We give you the kind of hands-on financial partner usually reserved for large corporates — personal, proactive, and always compliant.</p>
+        <div class="eyebrow" style="margin-bottom:8px">Founder &amp; Director</div>
+        <h3 style="font-size:22px;margin-bottom:12px">Matete Ellen Legodi, <span style="color:var(--gold)">ACMA, CGMA</span></h3>
+        <p class="muted">NM Legodi Consulting is a South African accounting and financial consulting practice providing accounting, tax, compliance and financial management services to entrepreneurs and businesses.</p>
+        <p class="muted">Led by Matete Ellen Legodi, ACMA, CGMA, the practice draws on over eight years of professional experience across:</p>
+        <ul class="fx">
+          <li>Financial accounting &amp; reporting</li>
+          <li>Financial management &amp; analysis</li>
+          <li>Budgeting &amp; forecasting</li>
+          <li>Tax &amp; statutory compliance</li>
+          <li>Risk management, internal controls &amp; financial governance</li>
+        </ul>
+        <p class="muted">We go beyond maintaining financial records. We help businesses strengthen their finance functions, implement effective internal controls, develop and structure financial policies and procedures, and establish sound financial processes that promote accountability, compliance and sustainable growth.</p>
+        <p class="muted">Our approach is practical and hands-on, providing business owners with reliable financial information, stronger financial processes and the insight they need to make informed decisions.</p>
+        <p class="tagline">Professional expertise. Personal attention. Practical solutions.</p>
       </div>
     </div>
 
